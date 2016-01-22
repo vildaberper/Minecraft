@@ -1,0 +1,26 @@
+uniform float ticks;
+uniform sampler2D texture;
+
+void main (void)  
+{
+    vec2 pos = gl_TexCoord[0].xy;
+
+    float xb = floor(pos.x * 16.0) / 16.0;
+    float xs = xb - fract(xb);
+    xb = fract(xb);
+    float xd = pos.x - xb;
+    pos.x = xb + 1.0 / 16.0 - mod(xd * (1.0 + xs), 1.0 / 16.0);
+
+    float yb = floor(pos.y * 16.0) / 16.0;
+    float ys = yb - fract(yb);
+    yb = fract(yb);
+    float yd = pos.y - yb;
+    pos.y = yb + 1.0 / 16.0 - mod(yd * (1.0 + ys), 1.0 / 16.0);
+
+    vec4 pixel = texture2D(texture, pos);
+
+    if(pixel.a < 0.5)
+        discard;
+
+    gl_FragColor = gl_Color * pixel;
+}
