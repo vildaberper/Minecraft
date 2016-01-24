@@ -52,6 +52,22 @@ struct V{
 	float gravity = 0.01;
 	float friction = 0.5;
 
+	BlockType t = STONE;
+
+	void nextT(){
+		int ti = t + 1;
+		if (ti > 10)
+			ti = 1;
+		t = BlockType(ti);
+	}
+
+	void lastT(){
+		int ti = t - 1;
+		if (ti < 1)
+			ti = 10;
+		t = BlockType(ti);
+	}
+
 	std::map<int, bool> keyStates;
 };
 
@@ -119,14 +135,15 @@ void mousebtn(GLFWwindow* window, int button, int action, int mods){
 		if (button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_MIDDLE){
 			if (button == GLFW_MOUSE_BUTTON_RIGHT){
 				if (v.rt.target != NULL && v.rt.beforeTarget != NULL &&v.rt.target->type != AIR)
-					v.cm->setTypeAt(v.rt.btx, v.rt.bty, v.rt.btz, COBBLESTONE);
+					v.cm->setTypeAt(v.rt.btx, v.rt.bty, v.rt.btz, v.t);
 			}
 			else if (button == GLFW_MOUSE_BUTTON_LEFT){
 				if (v.rt.target != NULL && v.rt.target->type != AIR)
 					v.cm->setTypeAt(v.rt.tx, v.rt.ty, v.rt.tz, AIR);
 			}
 			else if (button == GLFW_MOUSE_BUTTON_MIDDLE){
-
+				if (v.rt.target != NULL && v.rt.target->type != AIR)
+					v.t = v.rt.target->type;
 			}
 		}
 	}
@@ -368,6 +385,7 @@ void display(void){
 	v.cm->frame(v.cam);
 	//glDisable(GL_TEXTURE_2D);
 
+
 	v.rt = RayTrace::trace(v.cam, v.cm);
 	if (v.rt.target != NULL && v.rt.target->type != AIR){
 		glPushMatrix();
@@ -384,7 +402,7 @@ void display(void){
 	glTranslatef(0, 0, -0.5f);
 	glColor3f(0, 0, 0);
 	float size = 0.01f;
-	glLineWidth(1);
+	glLineWidth(2);
 	glBegin(GL_LINES);
 	glVertex3f(-size, 0, 0);
 	glVertex3f(size, 0, 0);
@@ -393,6 +411,22 @@ void display(void){
 	glEnd();
 	glPopMatrix();
 
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslatef(0, 0.4f, -0.5f);
+	glColor3f(1, 1, 1);
+	float texsize = 0.06f;
+	glBegin(GL_QUADS);
+	glTexCoord2f(tx(v.t, TOP), ty(v.t, TOP));
+	glVertex3f(-texsize, -texsize, 0);
+	glTexCoord2f(tx(v.t, TOP) + 1.0f / 16.0f, ty(v.t, TOP));
+	glVertex3f(texsize, -texsize, 0);
+	glTexCoord2f(tx(v.t, TOP) + 1.0f / 16.0f, ty(v.t, TOP) + 1.0f / 16.0f);
+	glVertex3f(texsize, texsize, 0);
+	glTexCoord2f(tx(v.t, TOP), ty(v.t, TOP) + 1.0f / 16.0f);
+	glVertex3f(-texsize, texsize, 0);
+	glEnd();
+	glPopMatrix();
 	if (v.shader) v.shader->end();
 }
 
@@ -404,6 +438,10 @@ void focus(GLFWwindow* window, int focused){
 	else{
 		v.keyStates.clear();
 	}
+}
+
+void scroll(GLFWwindow* window, double xoffset, double yoffset){
+	yoffset > 0 ? v.nextT() : v.lastT();
 }
 
 void error_callback(int error, const char* description){
@@ -460,6 +498,7 @@ int main(int argc, char **argv){
 	glfwSetKeyCallback(v.window, key);
 	glfwSetCursorPosCallback(v.window, cursor);
 	glfwSetMouseButtonCallback(v.window, mousebtn);
+	glfwSetScrollCallback(v.window, scroll);
 	glfwSetWindowFocusCallback(v.window, focus);
 
 	if (glfwJoystickPresent(GLFW_JOYSTICK_1)){
