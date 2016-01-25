@@ -1,11 +1,30 @@
 uniform float ticks;
 uniform sampler2D texture;
+uniform float lightSources[40];
 
 void main(void)
 {
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 
     gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
-
+	
     gl_FrontColor = gl_Color;
+	
+	vec4 rel = (gl_ModelViewProjectionMatrix * gl_Vertex);
+	float dist = sqrt(rel.x*rel.x + rel.y*rel.y + rel.z*rel.z);
+	float mod = 0.2;
+	
+	//if(dist <= 10.0){
+		//mod += (1 - (dist / 10.0)) * 1.8;
+	//}
+	vec4 dis = gl_Vertex;
+	for(int i = 0; i < 10; i++){
+		vec4 rels = vec4(lightSources[i], lightSources[i + 10], lightSources[i + 20], lightSources[i + 30]);
+		float dists = sqrt(pow(rels.x - dis.x, 2) + pow(rels.y - dis.y, 2) + pow(rels.z - dis.z, 2));
+		
+		if(dists <= rels[3]){
+			mod += (1 - (dists / rels[3])) * 1.8;
+		}
+	}
+	gl_FrontColor.rgb *= mod;
 }

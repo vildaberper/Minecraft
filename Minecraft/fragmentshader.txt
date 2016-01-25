@@ -21,6 +21,5 @@ void main (void)
 
     if(pixel.a < 0.5)
         discard;
-
     gl_FragColor = gl_Color * pixel;
 }
