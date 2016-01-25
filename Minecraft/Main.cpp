@@ -69,6 +69,8 @@ struct V{
 	}
 
 	std::map<int, bool> keyStates;
+
+	float lightSS[40];
 };
 
 struct V v;
@@ -345,6 +347,31 @@ void display(void){
 		glUniform1f(ticks, v.cm->framecount);
 	}
 
+	GLint lightSources = glGetUniformLocation(v.programObject, "lightSources");
+	if (lightSources != -1)
+	{
+		v.lightSS[0] = 1220;
+		v.lightSS[10] = 55;
+		v.lightSS[20] = 760;
+		v.lightSS[30] = 10;
+
+		v.lightSS[1] = 1216;
+		v.lightSS[11] = 56;
+		v.lightSS[21] = 778;
+		v.lightSS[31] = 15;
+
+		v.lightSS[2] = 1116;
+		v.lightSS[12] = 56;
+		v.lightSS[22] = 778;
+		v.lightSS[32] = 50;
+
+		v.lightSS[3] = 1195;
+		v.lightSS[13] = 48;
+		v.lightSS[23] = 778;
+		v.lightSS[33] = 4;
+		glUniform1fv(lightSources, 40, v.lightSS);
+	}
+
 	v.cam->look();
 
 	glEnable(GL_DEPTH_TEST);
@@ -353,25 +380,6 @@ void display(void){
 	//glDisable(GL_BLEND);
 	glEnable(GL_BLEND);
 	glPolygonMode(GL_FRONT, GL_FILL);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glPushMatrix();
-	glLoadIdentity();
-	glTranslatef(0, 1, 0);
-	glEnable(GL_LIGHTING);
-	GLfloat plight_ambient[] = { 0.1, 0.1, 0.1, 1.0 };
-	GLfloat plight_diffuse[] = { 0.3, 0.3, 0.3, 1.0 };
-	GLfloat plight_specular[] = { 0.2, 0.2, 0.2, 1.0 };
-	GLfloat plight_position[] = { -1, 0, -1, 1.0f };
-	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, plight_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, plight_diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, plight_specular);
-	glLightfv(GL_LIGHT0, GL_POSITION, plight_position);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_COLOR_MATERIAL);
-	glShadeModel(GL_SMOOTH);
-	glPopMatrix();
 	
 	//glEnable(GL_TEXTURE_2D);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -385,11 +393,12 @@ void display(void){
 	v.cm->frame(v.cam);
 	//glDisable(GL_TEXTURE_2D);
 
+	if (v.shader) v.shader->end();
 
 	v.rt = RayTrace::trace(v.cam, v.cm);
 	if (v.rt.target != NULL && v.rt.target->type != AIR){
 		glPushMatrix();
-		glTranslatef(Block::RENDER_SIZE * v.rt.tx + Block::RENDER_SIZE / 2, Block::RENDER_SIZE * v.rt.ty + Block::RENDER_SIZE / 2, Block::RENDER_SIZE * v.rt.tz + Block::RENDER_SIZE / 2);
+		glTranslatef(Block::RENDER_SIZE * v.rt.tx + Block::RENDER_SIZE / 2.0f, Block::RENDER_SIZE * v.rt.ty + Block::RENDER_SIZE / 2.0f, Block::RENDER_SIZE * v.rt.tz + Block::RENDER_SIZE / 2.0f);
 		glColor3f(0, 0, 0);
 		glLineWidth(2);
 		glutWireCube(Block::RENDER_SIZE + 0.005);
@@ -427,7 +436,6 @@ void display(void){
 	glVertex3f(-texsize, texsize, 0);
 	glEnd();
 	glPopMatrix();
-	if (v.shader) v.shader->end();
 }
 
 void focus(GLFWwindow* window, int focused){

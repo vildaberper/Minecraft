@@ -64,12 +64,12 @@ void Chunk::render(){
 	if (mesh->empty && ncmesh->empty)
 		return;
 
-	glPushMatrix();
+	/*glPushMatrix();
 	glTranslatef(
 		x * CHUNK_SIZE * Block::RENDER_SIZE,
 		y * CHUNK_SIZE * Block::RENDER_SIZE,
 		z * CHUNK_SIZE * Block::RENDER_SIZE
-		);
+		);*/
 	if (!mesh->empty){
 		mesh->render();
 	}
@@ -78,7 +78,7 @@ void Chunk::render(){
 		ncmesh->render();
 		glEnable(GL_CULL_FACE);
 	}
-	glPopMatrix();
+	//glPopMatrix();
 }
 
 bool Chunk::isFaceVisible(int x, int y, int z, Face f){
@@ -172,10 +172,12 @@ void Chunk::updateMesh(){
 				for (j = 0; j < Chunk::CHUNK_SIZE; j++) {
 					for (i = 0; i < Chunk::CHUNK_SIZE;) {
 						if (mask[n] != 0) {
-							for (w = 1; w + i < Chunk::CHUNK_SIZE && mask[n + w] != 0 && mask[n + w] == mask[n]; w++) {}
-
+							for (w = 1; false && w + i < Chunk::CHUNK_SIZE && mask[n + w] != 0 && mask[n + w] == mask[n]; w++) {}
+							// Vertex lightning shader does not like big meshes!
 							bool done = false;
-							for (h = 1; j + h < Chunk::CHUNK_SIZE; h++) {
+							h = 1;
+							k = 0;
+							/*for (h = 1; j + h < Chunk::CHUNK_SIZE; h++) {
 								for (k = 0; k < w; k++) {
 									if (mask[n + k + h * Chunk::CHUNK_SIZE] == 0 || mask[n + k + h * Chunk::CHUNK_SIZE] != mask[n]) {
 										done = true;
@@ -183,7 +185,7 @@ void Chunk::updateMesh(){
 									}
 								}
 								if (done) break;
-							}
+							}*/
 							x[u] = i;
 							x[v] = j;
 							du[0] = 0; du[1] = 0; du[2] = 0; du[u] = w;
@@ -199,12 +201,12 @@ void Chunk::updateMesh(){
 								t = x[2] + q[2];
 							}
 
-							float x0 = Block::RENDER_SIZE * r;
-							float x1 = Block::RENDER_SIZE * (r + du[0] + dv[0]);
-							float y0 = Block::RENDER_SIZE * s;
-							float y1 = Block::RENDER_SIZE * (s + du[1] + dv[1]);
-							float z0 = Block::RENDER_SIZE * t;
-							float z1 = Block::RENDER_SIZE * (t + du[2] + dv[2]);
+							float x0 = Block::RENDER_SIZE * r + Chunk::x * CHUNK_SIZE * Block::RENDER_SIZE;
+							float x1 = Block::RENDER_SIZE * (r + du[0] + dv[0]) + Chunk::x * CHUNK_SIZE * Block::RENDER_SIZE;
+							float y0 = Block::RENDER_SIZE * s + Chunk::y * CHUNK_SIZE * Block::RENDER_SIZE;
+							float y1 = Block::RENDER_SIZE * (s + du[1] + dv[1]) + Chunk::y * CHUNK_SIZE * Block::RENDER_SIZE;
+							float z0 = Block::RENDER_SIZE * t + Chunk::z * CHUNK_SIZE * Block::RENDER_SIZE;
+							float z1 = Block::RENDER_SIZE * (t + du[2] + dv[2]) + Chunk::z * CHUNK_SIZE * Block::RENDER_SIZE;
 
 							float x = tx(mask[n], face);
 							float y = ty(mask[n], face);

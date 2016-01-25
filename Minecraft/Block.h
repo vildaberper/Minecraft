@@ -123,7 +123,7 @@ static const bool isBlock_(BlockType type){
 
 class Block{
 public:
-	static const long RENDER_SIZE = 2;
+	static const long RENDER_SIZE = 1;
 
 	Block();
 	~Block();
